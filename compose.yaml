@@ -1,16 +1,24 @@
 services:
-  drivers:
-    image: robot-modules/drivers:humble
+  realsense_driver:
+    image: robot-drivers/realsense-driver:humble
+    platform: ${ROBOT_PLATFORM:-linux/arm64}
     build:
-      context: ..
-      dockerfile: drivers/Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LIBREALSENSE_REF: ${LIBREALSENSE_REF:-v2.56.5}
+        REALSENSE_ROS_REF: ${REALSENSE_ROS_REF:-4.56.4}
+        BUILD_JOBS: ${BUILD_JOBS:-2}
+        USERNAME: ros
+        UID: ${HOST_UID:-1000}
+        GID: ${HOST_GID:-1000}
     network_mode: host
     ipc: host
     privileged: true
     volumes:
       - /dev:/dev
       - /run/udev:/run/udev:ro
+      - ./config:/ws/config:ro
     environment:
       RMW_IMPLEMENTATION: rmw_cyclonedds_cpp
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
-    command: sleep infinity

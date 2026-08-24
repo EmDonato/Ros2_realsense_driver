@@ -1,29 +1,133 @@
-# Drivers
+# RealSense D435i ROS 2 driver
 
-Reusable drivers for Raspberry Pi 5:
+This repository builds the RealSense SDK and ROS 2 wrapper from pinned source
+releases and starts a D435i camera under the `/burger` namespace. It targets a
+Raspberry Pi 5 running ROS 2 Humble in an Ubuntu 22.04 container.
 
-- `stm32_nucleo_f303re_driver`: serial driver, default `/dev/ttyACM0` at 115200 baud
-- `lidar_driver`: LD06 serial driver, default `/dev/ttyUSB0`
-- `module3_driver`: Raspberry Pi Camera Module 3 through libcamera and GStreamer
-- `realsense2_camera`: pinned upstream source declared in `upstream.repos`
+Default source versions:
 
-Build and open the container:
+- `librealsense` v2.56.5
+- `realsense-ros` 4.56.4
+
+The SDK uses the RSUSB backend, so no RealSense kernel patch is compiled into
+the container. Graphical applications, examples, tools, unit tests, and Python
+bindings are disabled.
+
+## Repository layout
+
+- `config/params.yaml`: flat parameter dictionary consumed by `rs_launch.py`.
+- `Dockerfile`: single-stage SDK and ROS wrapper source build.
+- `compose.yaml`: Raspberry Pi 5 runtime example.
+
+The RealSense ROS source is downloaded during the image build and is not
+vendored in this repository.
+
+## Dependencies and device
+
+The image compiles against libusb, udev, Eigen, OpenSSL, and the ROS 2 Humble
+dependencies declared by the upstream wrapper. `librealsense` and
+`realsense-ros` are both built from their pinned source tags with `colcon` used
+for the ROS workspace.
+
+Runtime requires a RealSense D435i connected over USB 3. The host supplies the
+USB device tree and udev events to the privileged container.
+
+## Build and run
+
+Run from this repository:
 
 ```bash
-docker compose -f drivers/compose.yaml build
-docker compose -f drivers/compose.yaml up -d
-docker compose -f drivers/compose.yaml exec drivers bash
+docker compose build
+docker compose up
 ```
 
-Example node commands:
+The default platform is `linux/arm64`. Build natively on x86-64 with:
 
 ```bash
-ros2 run stm32_nucleo_f303re_driver stm_driver --ros-args -p port:=/dev/ttyACM0
-ros2 run lidar_driver lidar_driver --ros-args -p port:=/dev/ttyUSB0
-ros2 run module3_driver module3
-ros2 launch realsense2_camera rs_launch.py
+ROBOT_PLATFORM=linux/amd64 docker compose build
 ```
 
-The hardware container has privileged access to `/dev` because libcamera, USB, and serial hardware can create multiple dynamic devices. Restrict the device mappings in the production robot's `compose.yaml` whenever possible.
+Build arguments can override the pinned releases and parallel build count:
 
-On `linux/arm64`, the Dockerfile builds `libpisp` and Raspberry Pi's `libcamera` fork, including the `libcamerasrc` GStreamer plugin. Ubuntu 22.04 does not distribute that plugin for arm64. The upstream references can be overridden with the `LIBPISP_REF` and `LIBCAMERA_REF` build arguments.
+```bash
+LIBREALSENSE_REF=v2.56.5 \
+REALSENSE_ROS_REF=4.56.4 \
+BUILD_JOBS=2 \
+docker compose build
+```
+
+The service uses host networking, host IPC, privileged device access, Cyclone
+DDS, and `/dev` from the host. It runs as the non-root `ros` user.
+
+## Host udev rule
+
+USB permissions are assigned by udev on the Raspberry Pi host, not by the udev
+rule stored inside the container. Install the rule from the same pinned SDK
+release on the host before starting the service:
+
+```bash
+git clone --depth 1 --branch v2.56.5 \
+  https://github.com/realsenseai/librealsense.git /tmp/librealsense-udev
+sudo install -m 0644 \
+  /tmp/librealsense-udev/config/99-realsense-libusb.rules \
+  /etc/udev/rules.d/99-realsense-libusb.rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+Unplug and reconnect the camera after installing the rule.
+
+The v2.56.5 release recommends firmware 5.17.0.10 or newer for D400 cameras.
+This repository never updates camera firmware automatically.
+
+## Parameters
+
+`config/params.yaml` is intentionally a flat dictionary because it is passed to
+the upstream `rs_launch.py` through its `config_file` argument.
+
+Important defaults:
+
+| Parameter | Default |
+| --- | --- |
+| Color profile | `640x480x30`, `RGB8` |
+| Depth profile | `640x480x30` |
+| Color exposure and gain | `500`, `32` |
+| Color white balance | `4600` |
+| Color and depth auto exposure | Disabled |
+| Synchronization and depth alignment | Enabled |
+| Spatial filter | Enabled, alpha `0.5`, delta `20` |
+| Temporal filter | Enabled, alpha `0.4`, delta `20` |
+| Point cloud, infrared, gyro, and accelerometer | Disabled |
+| TF publication | Enabled |
+| Color and depth QoS | `SENSOR_DATA` |
+
+The configuration directory is copied into the image and mounted read-only by
+Compose, allowing parameters to be changed without rebuilding the image.
+
+## ROS interfaces
+
+The upstream launch starts `/burger/realsense`. Expected image topics include:
+
+- `/burger/realsense/color/image_raw`
+- `/burger/realsense/color/camera_info`
+- `/burger/realsense/depth/image_rect_raw`
+- `/burger/realsense/depth/camera_info`
+- `/burger/realsense/aligned_depth_to_color/image_raw`
+
+The wrapper also publishes the enabled camera transforms on `/tf` and
+`/tf_static`. Frame names generated by the upstream wrapper include
+`realsense_link`, `realsense_color_frame`, `realsense_color_optical_frame`,
+`realsense_depth_frame`, and `realsense_depth_optical_frame`. Point cloud and
+IMU topics are disabled by default. This repository adds no custom ROS
+services; any services present are supplied by the pinned upstream wrapper.
+
+## Troubleshooting
+
+- Connect the D435i directly to a USB 3 port and use a suitable power supply for
+  the Raspberry Pi 5.
+- Confirm that the host detects the camera with `lsusb`.
+- Reinstall and reload the host udev rule if the non-root container user cannot
+  access the camera.
+- Reduce `BUILD_JOBS` if the Raspberry Pi runs out of memory during compilation.
+- Keep the SDK, wrapper, and camera firmware versions aligned when overriding
+  the pinned defaults.
