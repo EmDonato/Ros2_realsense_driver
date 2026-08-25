@@ -9,7 +9,7 @@ services:
         LIBREALSENSE_REF: ${LIBREALSENSE_REF:-v2.56.5}
         REALSENSE_ROS_REF: ${REALSENSE_ROS_REF:-4.56.4}
         BUILD_JOBS: ${BUILD_JOBS:-2}
-        USERNAME: ros
+        USERNAME: root
         UID: ${HOST_UID:-1000}
         GID: ${HOST_GID:-1000}
     network_mode: host

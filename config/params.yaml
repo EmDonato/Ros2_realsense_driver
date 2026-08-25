@@ -29,3 +29,4 @@ temporal_filter.smooth_delta: 20
 hole_filling_filter.enable: false
 color_qos: SENSOR_DATA
 depth_qos: SENSOR_DATA
+

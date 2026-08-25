@@ -8,13 +8,9 @@ ARG LIBREALSENSE_REF=v2.56.5
 ARG REALSENSE_ROS_REF=4.56.4
 ARG BUILD_JOBS=2
 ARG TARGETARCH
-ARG USERNAME=ros
-ARG UID=1000
-ARG GID=1000
+ARG USERNAME=root
 
-RUN groupadd --gid ${GID} ${USERNAME} && \
-    useradd --create-home --uid ${UID} --gid ${GID} --shell /bin/bash ${USERNAME} && \
-    usermod --append --groups dialout,video,plugdev ${USERNAME}
+
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -36,6 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-tf2-ros \
     ros-${ROS_DISTRO}-xacro \
+    ros-${ROS_DISTRO}-compressed-image-transport \
+    ros-${ROS_DISTRO}-compressed-depth-image-transport \
     && rm -rf /var/lib/apt/lists/*
 
 RUN case "${TARGETARCH}" in \
@@ -85,4 +83,4 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 USER ${USERNAME}
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["ros2", "launch", "realsense2_camera", "rs_launch.py", "camera_name:=realsense", "camera_namespace:=burger", "config_file:=/ws/config/params.yaml"]
+CMD ["ros2", "launch", "realsense2_camera", "rs_launch.py", "camera_name:=realsense", "config_file:=/ws/config/params.yaml"]
