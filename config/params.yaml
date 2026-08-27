@@ -3,8 +3,8 @@ enable_depth: true
 enable_sync: true
 rgb_camera.color_format: RGB8
 rgb_camera.enable_auto_exposure: false
-rgb_camera.color_profile: 640x480x30
-depth_module.depth_profile: 640x480x30
+rgb_camera.color_profile: 640x480x60
+depth_module.depth_profile: 640x480x60
 rgb_camera.exposure: 500
 rgb_camera.gain: 32
 rgb_camera.enable_auto_white_balance: false
