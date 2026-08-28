@@ -3,6 +3,9 @@ services:
     image: open-pi-realsense-driver-img
     platform: ${ROBOT_PLATFORM:-linux/arm64}
     container_name: open-pi-realsense-driver
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 60s
     build:
       context: .
       dockerfile: Dockerfile
