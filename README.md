@@ -89,8 +89,8 @@ Important defaults:
 
 | Parameter | Default |
 | --- | --- |
-| Color profile | `640x480x30`, `RGB8` |
-| Depth profile | `640x480x30` |
+| Color profile | `640x480x60`, `RGB8` |
+| Depth profile | `640x480x60` |
 | Color exposure and gain | `500`, `32` |
 | Color white balance | `4600` |
 | Color and depth auto exposure | Disabled |
