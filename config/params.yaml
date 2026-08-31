@@ -1,32 +1,54 @@
+#
+# Intel RealSense D435i - ROS 2 / realsense-ros 4.56.4
+# Balanced indoor profile for 640x480 at 30 FPS.
+#
+
+
 enable_color: true
 enable_depth: true
 enable_sync: true
+
 rgb_camera.color_format: RGB8
+rgb_camera.color_profile: 640x480x30
 rgb_camera.enable_auto_exposure: false
-rgb_camera.color_profile: 640x480x15
-depth_module.depth_profile: 640x480x15
-rgb_camera.exposure: 500
-rgb_camera.gain: 32
+rgb_camera.auto_exposure_priority: false
+rgb_camera.exposure: 200
+rgb_camera.gain: 80
 rgb_camera.enable_auto_white_balance: false
 rgb_camera.white_balance: 4600.0
+
+depth_module.depth_format: Z16
+depth_module.depth_profile: 640x480x30
+depth_module.enable_auto_exposure: false
+depth_module.exposure: 8500
+depth_module.gain: 16
+depth_module.emitter_enabled: 1
+
 align_depth.enable: true
 pointcloud.enable: false
+
 enable_infra: false
 enable_infra1: false
 enable_infra2: false
-pointcloud.allow_no_texture_points: false
 enable_gyro: false
 enable_accel: false
-publish_tf: true
-depth_module.enable_auto_exposure: false
+
 decimation_filter.enable: false
+
 spatial_filter.enable: true
-spatial_filter.smooth_alpha: 0.5
-spatial_filter.smooth_delta: 20
+spatial_filter.filter_smooth_alpha: 0.5
+spatial_filter.filter_smooth_delta: 20
+
 temporal_filter.enable: true
-temporal_filter.smooth_alpha: 0.4
-temporal_filter.smooth_delta: 20
+temporal_filter.filter_smooth_alpha: 0.4
+temporal_filter.filter_smooth_delta: 20
+
 hole_filling_filter.enable: false
+
+publish_tf: true
+tf_publish_rate: 0.0
+
 color_qos: SENSOR_DATA
 depth_qos: SENSOR_DATA
 
+diagnostics_period: 1.0
