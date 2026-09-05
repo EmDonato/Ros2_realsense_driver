@@ -51,8 +51,7 @@ RUN case "${TARGETARCH}" in \
         -DBUILD_TOOLS=OFF \
         -DBUILD_UNIT_TESTS=OFF \
         -DLIBUSB_INC=/usr/include/libusb-1.0 \
-        -DLIBUSB_LIB=/usr/lib/${LIBUSB_ARCH}/libusb-1.0.so \
-        -DFORCE_RSUSB_BACKEND=ON && \
+        -DLIBUSB_LIB=/usr/lib/${LIBUSB_ARCH}/libusb-1.0.so && \
     cmake --build /tmp/librealsense/build --parallel ${BUILD_JOBS} && \
     cmake --install /tmp/librealsense/build && \
     mkdir -p /etc/udev/rules.d && \
@@ -66,7 +65,7 @@ WORKDIR /ws
 RUN git clone --depth 1 --branch ${REALSENSE_ROS_REF} \
     https://github.com/realsenseai/realsense-ros.git src/realsense-ros
 
-COPY config/ config/
+COPY my_launch/ /ws/my_launch/
 
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && \
     colcon build --merge-install \
@@ -83,4 +82,4 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 USER ${USERNAME}
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["ros2", "launch", "realsense2_camera", "rs_launch.py", "camera_name:=realsense", "config_file:=/ws/config/params.yaml"]
+CMD ["ros2", "launch", "/ws/my_launch/realsense.launch.py"]
