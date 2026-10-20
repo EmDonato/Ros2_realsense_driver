@@ -1,6 +1,6 @@
 services:
   realsense_driver:
-    image: open-pi-realsense-driver-img
+    image: open-pi-realsense-driver-img:jazzy
     platform: ${ROBOT_PLATFORM:-linux/arm64}
     container_name: open-pi-realsense-driver
     init: true

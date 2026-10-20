@@ -1,9 +1,9 @@
-ARG ROS_DISTRO=humble
-FROM ros:${ROS_DISTRO}-ros-base-jammy
+ARG ROS_DISTRO=jazzy
+FROM ros:${ROS_DISTRO}-ros-base-noble
 
 SHELL ["/bin/bash", "-c"]
 
-ARG ROS_DISTRO=humble
+ARG ROS_DISTRO=jazzy
 ARG LIBREALSENSE_REF=v2.56.5
 ARG REALSENSE_ROS_REF=4.56.4
 ARG BUILD_JOBS=2
